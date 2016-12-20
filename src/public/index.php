@@ -1,7 +1,7 @@
 <?php
-require_once \dirname(\dirname(__DIR__)) . '/vendor/autoload.php';
+define('TEAMA_ROOT', \dirname(\dirname(__DIR__)));
 
-echo 'Hello, world!', PHP_EOL;
+require_once TEAMA_ROOT . '/vendor/autoload.php';
 
 $dispatcher = FastRoute\simpleDispatcher(
     function (FastRoute\RouteCollector $r) {
@@ -13,8 +13,8 @@ $dispatcher = FastRoute\simpleDispatcher(
     }
 );
 
-$httpMethod = $_SERVER['REQUEST_METHOD'];
-$uri = $_SERVER['REQUEST_URI'];
+$httpMethod = isset($_SERVER['REQUEST_METHOD']) ? $_SERVER['REQUEST_METHOD'] : 'GET';
+$uri = isset($_SERVER['REQUEST_URI']) ? $_SERVER['REQUEST_URI'] : '/';
 
 // Strip query string (?foo=bar) and decode URI
 if (false !== $pos = \strpos($uri, '?')) {
@@ -34,6 +34,11 @@ switch ($routeInfo[0]) {
     case FastRoute\Dispatcher::FOUND:
         $handler = $routeInfo[1];
         $vars = $routeInfo[2];
-        \call_user_func_array($handler, $vars);
+        $obj = new $handler[0];
+        if (!empty($vars)) {
+            $obj->{$handler[1]}(...$vars);
+        } else {
+            $obj->{$handler[1]}();
+        }
         break;
 }

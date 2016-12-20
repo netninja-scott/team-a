@@ -12,7 +12,7 @@ class Index extends CommonAPI
     /**
      *
      */
-    public static function index()
+    public function index()
     {
 
     }
