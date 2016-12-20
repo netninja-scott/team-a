@@ -40,7 +40,6 @@ class CommonAPI
      */
     public function __construct()
     {
-        $this->conn = \pg_connect('host=localhost port=5432 dbname=plaxitude user=img password=img1') or die('connection failed.');
         $this->guzzle = new HTTPClient();
         $this->mailTransport = new Sendmail();
 
@@ -51,11 +50,6 @@ class CommonAPI
             $conn['username'],
             $conn['password']
         );
-    }
-
-    public function __destruct()
-    {
-        \pg_close($this->conn);
     }
 
     /**
@@ -190,9 +184,7 @@ class CommonAPI
     {
         static $categories = null;
         if (!$categories) {
-            $results = $this->db->safeQuery(
-                "SELECT DISTINCT category FROM quotes ORDER BY category ASC"
-            );
+            $results = $this->db->run("SELECT DISTINCT category FROM quotes ORDER BY category ASC");
             foreach ($results as $res) {
                 $categories[] = $res['category'];
             }
@@ -208,14 +200,12 @@ class CommonAPI
     protected function getRandomPlaxitude($category)
     {
         if ($category) {
-            $result = $this->db->safeQuery(
+            $result = $this->db->run(
                 "SELECT * FROM quotes WHERE category = $1 ORDER BY RANDOM() ",
                 $category
             );
         } else {
-            $result = $this->db->safeQuery(
-                "SELECT * FROM quotes ORDER BY RANDOM() "
-            );
+            $result = $this->db->run("SELECT * FROM quotes ORDER BY RANDOM() ");
         }
 
         return $result['text'];
@@ -347,12 +337,11 @@ class CommonAPI
         $response = (string) $this->guzzle->request('GET', $url);
         $resp = json_decode($response);
 
-        \pg_query_params(
-            $this->conn,
-            "INSERT INTO status (message_id, recipient_name) VALUES ($1, $2)",
+        $this->db->insert(
+            'status',
             [
-                $resp->sid,
-                $phoneNumber
+                'message_id' => $resp->sid,
+                'recipient' => $phoneNumber
             ]
         );
     }
