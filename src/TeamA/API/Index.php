@@ -23,8 +23,10 @@ class Index extends CommonAPI
      * @param string $recipient
      * @param string $plaxitude
      */
-    protected function sendPlaxitude($recipient = '', $plaxitude = '')
+    protected function sendPlaxitude($recipient = '', $plaxitude = '', $category = false)
     {
+        $plaxitude = $this->getPlaxitude($category);
+
         try {
             $user = $this->searchSlackChannel($recipient);
         } catch (UserNotFound $ex) {
@@ -37,13 +39,39 @@ class Index extends CommonAPI
         }
     }
 
+    protected function getPlaxitude($category) {
+        $conn = pg_connect('host=localhost port=5432 dbname=plaxitude user=img password=img1') or die('connection failed.');
+
+        $sql = "SELECT * FROM quotes WHERE TRUE ";
+        if ($category) $sql .= " AND category = '" . pg_escape_string($category) . "' ";
+        $sql .= " ORDER BY RANDOM() ";
+        $result = pg_fetch_assoc(pg_query($conn, $sql));
+
+        pg_close($conn);
+
+        return $result['text'];
+    }
+
     /**
      * @param string $phoneNumber
      * @param string $message
      */
     protected function sendSMS($phoneNumber, $message)
     {
+        $from = '13128001570';
+        $callback_url = 'http://plaxitude.networkninja.com/callback.php';
 
+        $arguments ='?from='.$from.'&to='.urlencode($phoneNumber).'&body='.urlencode($message).'&callback_url='.urlencode($callback_url);
+        $url .= $arguments;
+
+        $response = file_get_contents('http://'.$url);
+        $resp = json_decode($response);
+
+        $conn = pg_connect('host=localhost port=5432 dbname=plaxitude user=img password=img1') or die('connection failed.');
+        $sql = "INSERT INTO status (message_id, recipient_name)
+            VALUES ('{$resp->sid}', '{$recipient}')";
+        pg_query($conn, $sql);
+        pg_close($conn);
     }
 
     /**
