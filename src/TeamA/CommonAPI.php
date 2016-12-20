@@ -157,7 +157,7 @@ class CommonAPI
      *
      * @param string $endpoint
      * @param array $args
-     * @return \Psr\Http\Message\ResponseInterface
+     * @return \Psr\Http\Message\StreamInterface
      */
     protected function slackGetRequest($endpoint = '', array $args = [])
     {
@@ -165,7 +165,7 @@ class CommonAPI
         return $this->guzzle->request(
             'GET',
             'https://slack.com/api/' . $endpoint . '?' . \http_build_query($args)
-        );
+        )->getBody();
     }
 
     /**
