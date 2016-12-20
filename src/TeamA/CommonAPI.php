@@ -169,12 +169,20 @@ class CommonAPI
      * @param string $category
      * @return string
      */
-    protected function getRandomPlaxitude($category = '')
+    protected function getPlaxitude($category)
     {
-        if (empty($category)) {
-            $category = $this->getRandomPlaxitudeCategory();
+        $conn = pg_connect('host=localhost port=5432 dbname=plaxitude user=img password=img1') or die('connection failed.');
+
+        $sql = "SELECT * FROM quotes WHERE TRUE ";
+        if ($category) {
+            $sql .= " AND category = $1 ";
         }
-        // TODO: Lookup, using random_int()
+        $sql .= " ORDER BY RANDOM() ";
+        $result = pg_fetch_assoc(pg_query_params($conn, $sql, [$category]));
+
+        pg_close($conn);
+
+        return $result['text'];
     }
 
     /**
@@ -290,6 +298,25 @@ class CommonAPI
      */
     protected function sendSMS($phoneNumber, $message)
     {
-        // TODO: Use the Twilio API to send a message
+        $from = '13128001570';
+        $callback_url = 'http://plaxitude.networkninja.com/callback.php';
+
+        $url =  $callback_url . '?' . \http_build_query([
+            'from' => $from ,
+            'to' => $phoneNumber,
+            'body' => $message,
+            'callback_url' => $callback_url
+        ]);
+
+        $response = (string) $this->guzzle->request('GET', $url);
+        $resp = json_decode($response);
+
+        $conn = pg_connect('host=localhost port=5432 dbname=plaxitude user=img password=img1') or die('connection failed.');
+        $sql = "INSERT INTO status (message_id, recipient_name) VALUES ($1, $2)";
+        pg_query_params($conn, $sql, [
+            $resp->sid,
+            $phoneNumber
+        ]);
+        pg_close($conn);
     }
 }
