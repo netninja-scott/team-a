@@ -4,6 +4,7 @@ namespace Netninja\TeamA;
 use GuzzleHttp\Client as HTTPClient;
 use Netninja\TeamA\Exceptions\APIException;
 use Netninja\TeamA\Exceptions\UserNotFound;
+use Zend\Mail\Message;
 use Zend\Mail\Transport\Sendmail;
 
 /**
@@ -182,5 +183,57 @@ class CommonAPI
             $token = \trim($token);
         }
         return $token;
+    }
+
+    /**
+     * @param array $data
+     */
+    protected function jsonResponse(array $data)
+    {
+        \header('Content-Type: application/json; charset=UTF-8');
+        echo \json_encode($data, JSON_PRETTY_PRINT);
+        exit(0);
+    }
+
+    /**
+     * @param string $address
+     * @param string $messageBody
+     */
+    protected function sendEmail($address, $messageBody)
+    {
+        $message = new Message();
+        $message->setBody($messageBody);
+        $message->setTo($address);
+        $message->setSubject('Plaxitude');
+        $message->setFrom('alexa-plaxitude-bot@networkninja.com');
+
+        $this->mailTransport->send($message);
+    }
+
+    /**
+     * @param string $recipient
+     * @param string $plaxitude
+     */
+    protected function sendPlaxitude($recipient = '', $plaxitude = '')
+    {
+        try {
+            $user = $this->searchSlackChannel($recipient);
+        } catch (UserNotFound $ex) {
+            $user = $this->searchAllUsers($recipient);
+        }
+        if (!empty($user['phone'])) {
+            $this->sendSMS($user['phone'], $plaxitude);
+        } elseif (!empty($user['email'])) {
+            $this->sendEmail($user['email'], $plaxitude);
+        }
+    }
+
+    /**
+     * @param string $phoneNumber
+     * @param string $message
+     */
+    protected function sendSMS($phoneNumber, $message)
+    {
+
     }
 }

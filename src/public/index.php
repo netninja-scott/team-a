@@ -9,7 +9,12 @@ $dispatcher = FastRoute\simpleDispatcher(
         $r->addRoute(
             'GET',
             '/',
-            ['\\Netninja\\TeamA\\API\\Index', 'index']
+            ['\\Netninja\\TeamA\\API\\PlaxitudeBot', 'index']
+        );
+        $r->addRoute(
+            'GET',
+            '/send',
+            ['\\Netninja\\TeamA\\API\\PlaxitudeBot', 'send']
         );
     }
 );
