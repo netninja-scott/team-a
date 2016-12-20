@@ -28,6 +28,7 @@ class CommonAPI
      * @param string $name
      * @param string $channel
      * @return array
+     * @throws \InvalidArgumentException
      * @throws APIException
      * @throws UserNotFound
      */
@@ -48,11 +49,79 @@ class CommonAPI
             throw new APIException($channel['error']);
         }
         foreach ($channel['channel']['members'] as $member) {
-            if (\strtolower($member['name']) === $name) {
+            if ($this->userMatch($name, $member)) {
+                return $member['profile'];
+            }
+        }
+        foreach ($channel['members'] as $member) {
+            if ($this->userMatch($name, $member, true)) {
                 return $member['profile'];
             }
         }
         throw new UserNotFound('User not found in remote API');
+    }
+
+    /**
+     * @param string $name
+     */
+    protected function searchAllUsers($name = '')
+    {
+        if (!\is_string($name)) {
+            throw new \InvalidArgumentException('Name must be a string');
+        }
+        $response = (string) $this->slackGetRequest('users.list');
+        $users = \json_decode($response, true);
+        if (!$users['ok']) {
+            throw new APIException($users['error']);
+        }
+        foreach ($users['members'] as $member) {
+            if ($this->userMatch($name, $member)) {
+                return $member['profile'];
+            }
+        }
+        foreach ($users['members'] as $member) {
+            if ($this->userMatch($name, $member, true)) {
+                return $member['profile'];
+            }
+        }
+        throw new UserNotFound('User not found in remote API');
+    }
+
+    /**
+     * Does a member object match this name?
+     *
+     * @param string $searchName
+     * @param array $memberObject
+     * @param bool $firstOnyl
+     * @return bool
+     */
+    protected function userMatch($searchName, array $memberObject = [], $firstOnly = false)
+    {
+        $searchName =\strtolower($searchName);
+        if (\strtolower($memberObject['name']) === $searchName) {
+            return true;
+        }
+        if (\strtolower($memberObject['profile']['real_name']) === $searchName) {
+            return true;
+        }
+        if (\strpos($searchName, ' ') !== false) {
+            list($first, $last) = \explode(' ', \trim($searchName));
+            if (
+                \strtolower($memberObject['profile']['first_name']) === $first
+                &&
+                \strtolower($memberObject['profile']['last_name']) === $last
+            ) {
+                return true;
+            }
+            if (
+                $firstOnly
+                    &&
+                \strtolower($memberObject['profile']['first_name']) === $first
+            ) {
+                return true;
+            }
+        }
+        return false;
     }
 
     /**
