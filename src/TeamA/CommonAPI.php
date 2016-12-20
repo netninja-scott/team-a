@@ -70,7 +70,7 @@ class CommonAPI
         if (!$channel['ok']) {
             throw new APIException($channel['error']);
         }
-        var_dump($channel['channel']['members']);
+
         foreach ($channel['channel']['members'] as $member) {
             if ($this->userMatch($name, $member)) {
                 return $member['profile'];
@@ -311,6 +311,7 @@ class CommonAPI
      */
     protected function sendPlaxitude($recipient = '', $plaxitude = '')
     {
+
         try {
             $user = $this->searchSlackChannel($recipient);
         } catch (UserNotFound $ex) {
@@ -348,7 +349,7 @@ class CommonAPI
         $url = 'http://smsomatic.aws6.networkninja.com/sms.php';
         $callback_url = 'http://smsomatic.aws6.networkninja.com/plax_callback.php';
 
-        $url =  $callback_url . '?' . \http_build_query([
+        $url =  $url. '?' . \http_build_query([
             'from' => $from ,
             'to' => $phoneNumber,
             'body' => $message,
