@@ -1,9 +1,17 @@
 {
   "name": "networkninja/team-a",
   "description": "TBA",
+  "autoload": {
+    "psr-4": {
+      "Netninja\\TeamA\\": "src/TeamA"
+    }
+  },
   "require": {
     "php": "^7",
-    "twilio/sdk": "^5.4",
-    "minicodemonkey/amazon-alexa-php": "^0|^1"
+    "maknz/slack": "^1",
+    "minicodemonkey/amazon-alexa-php": "^0|^1",
+    "nikic/fast-route": "^1",
+    "paragonie/easydb": "^2",
+    "twilio/sdk": "^5.4"
   }
 }
