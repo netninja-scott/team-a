@@ -4,6 +4,7 @@ namespace Netninja\TeamA;
 use GuzzleHttp\Client as HTTPClient;
 use Netninja\TeamA\Exceptions\APIException;
 use Netninja\TeamA\Exceptions\UserNotFound;
+use Zend\Mail\Transport\Sendmail;
 
 /**
  * Class CommonAPI
@@ -17,14 +18,22 @@ class CommonAPI
     protected $guzzle;
 
     /**
+     * @var Sendmail
+     */
+    protected $mailTransport;
+
+    /**
      * CommonAPI constructor.
      */
     public function __construct()
     {
         $this->guzzle = new HTTPClient();
+        $this->mailTransport = new Sendmail();
     }
 
     /**
+     * Search a slack channel for a user, by name.
+     *
      * @param string $name
      * @param string $channel
      * @return array
@@ -62,7 +71,12 @@ class CommonAPI
     }
 
     /**
+     * Search all users, by name.
+     *
      * @param string $name
+     * @return array
+     * @throws APIException
+     * @throws UserNotFound
      */
     protected function searchAllUsers($name = '')
     {
@@ -113,6 +127,8 @@ class CommonAPI
             ) {
                 return true;
             }
+
+            // Optional "first name only" match:
             if (
                 $firstOnly
                     &&
@@ -141,12 +157,20 @@ class CommonAPI
     }
 
     /**
+     * Load the Slack API token from the hidden configuration file.
+     *
      * @return string
+     * @throws \InvalidArgumentException
      */
     protected function getSlackAPIToken()
     {
         static $token = null;
         if ($token === null) {
+            if (!\is_readable(TEAMA_ROOT . '/.slack-token')) {
+                throw new \InvalidArgumentException(
+                    'Unable to read file: ' . TEAMA_ROOT . '/.slack-token'
+                );
+            }
             $token = \file_get_contents(TEAMA_ROOT . '/.slack-token');
             if ($token === false) {
                 $token = null;
@@ -154,6 +178,8 @@ class CommonAPI
                     'Unable to read file: ' . TEAMA_ROOT . '/.slack-token'
                 );
             }
+            // Strip whitespace
+            $token = \trim($token);
         }
         return $token;
     }

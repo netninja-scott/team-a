@@ -3,6 +3,7 @@ define('TEAMA_ROOT', \dirname(\dirname(__DIR__)));
 
 require_once TEAMA_ROOT . '/vendor/autoload.php';
 
+/* Define the routes here: */
 $dispatcher = FastRoute\simpleDispatcher(
     function (FastRoute\RouteCollector $r) {
         $r->addRoute(
