@@ -1,0 +1,9 @@
+{
+  "name": "networkninja/team-a",
+  "description": "TBA",
+  "require": {
+    "php": "^7",
+    "twilio/sdk": "^5.4",
+    "minicodemonkey/amazon-alexa-php": "^0|^1"
+  }
+}
