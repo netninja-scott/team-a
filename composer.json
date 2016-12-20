@@ -12,6 +12,7 @@
     "minicodemonkey/amazon-alexa-php": "^0|^1",
     "nikic/fast-route": "^1",
     "paragonie/easydb": "^2",
+    "paragonie/random_compat": "^2",
     "twilio/sdk": "^5.4"
   }
 }
