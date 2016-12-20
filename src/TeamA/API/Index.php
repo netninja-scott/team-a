@@ -48,12 +48,12 @@ class Index extends CommonAPI
 
     /**
      * @param string $address
-     * @param string $message
+     * @param string $messageBody
      */
-    protected function sendEmail($address, $message)
+    protected function sendEmail($address, $messageBody)
     {
         $message = new Message();
-        $message->setBody($message);
+        $message->setBody($messageBody);
         $message->setTo($address);
         $message->setSubject('Plaxitude');
         $message->setFrom('alexa-plaxitude-bot@networkninja.com');
