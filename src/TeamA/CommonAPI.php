@@ -70,6 +70,7 @@ class CommonAPI
         if (!$channel['ok']) {
             throw new APIException($channel['error']);
         }
+        var_dump($channel['channel']['members']);
         foreach ($channel['channel']['members'] as $member) {
             if ($this->userMatch($name, $member)) {
                 return $member['profile'];
@@ -198,15 +199,11 @@ class CommonAPI
             $results = \pg_fetch_assoc(
                 \pg_query(
                     $this->conn,
-                    "SELECT DISTINCT category FROM quotes ORDER BY category ASC"
+                    "SELECT category FROM quotes ORDER BY RANDOM()"
                 )
             );
-            foreach ($results as $res) {
-                $categories[] = $res['category'];
-            }
+            return ($results['category']);
         }
-        $r = \random_int(0, \count($categories) - 1);
-        return $categories[$r];
     }
 
     /**
@@ -348,7 +345,8 @@ class CommonAPI
     protected function sendSMS($phoneNumber, $message)
     {
         $from = '13128001570';
-        $callback_url = 'http://plaxitude.networkninja.com/callback.php';
+        $url = 'http://smsomatic.aws6.networkninja.com/sms.php';
+        $callback_url = 'http://smsomatic.aws6.networkninja.com/plax_callback.php';
 
         $url =  $callback_url . '?' . \http_build_query([
             'from' => $from ,
