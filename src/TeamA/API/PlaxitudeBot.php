@@ -57,6 +57,14 @@ class PlaxitudeBot extends CommonAPI
         ]);
     }
 
+    public function callback()
+    {
+        $this->jsonResponse([
+            'ok' => true
+        ]);
+    }
+
+
     /**
      * @route /send
      */
