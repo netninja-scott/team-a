@@ -1,6 +1,4 @@
 <?php
-declare(strict_types=1);
-
 require_once \dirname(\dirname(__DIR__)) . '/vendor/autoload.php';
 
 echo 'Hello, world!', PHP_EOL;

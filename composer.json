@@ -7,7 +7,7 @@
     }
   },
   "require": {
-    "php": "^7",
+    "php": "^5.6|^7",
     "maknz/slack": "^1",
     "minicodemonkey/amazon-alexa-php": "^0|^1",
     "nikic/fast-route": "^1",
