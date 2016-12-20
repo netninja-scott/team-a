@@ -32,6 +32,7 @@ Expected parameters:
   * `"EARLY YEARS"`
   * `"JOKES"`
   * `"KIDS"`
+  * (If not specified, it will be chosen at random.)
 
 Response (JSON string):
 

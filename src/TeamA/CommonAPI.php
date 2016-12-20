@@ -158,6 +158,46 @@ class CommonAPI
     }
 
     /**
+     * @return string
+     */
+    protected function getRandomPlaxitudeCategory()
+    {
+        // TODO: Lookup, using random_int()
+    }
+
+    /**
+     * @param string $category
+     * @return string
+     */
+    protected function getRandomPlaxitude($category = '')
+    {
+        if (empty($category)) {
+            $category = $this->getRandomPlaxitudeCategory();
+        }
+        // TODO: Lookup, using random_int()
+    }
+
+    /**
+     * Search all users, by name.
+     *
+     * @return string[]
+     * @throws APIException
+     */
+    protected function getAllUsers()
+    {
+        $response = (string) $this->slackGetRequest('users.list');
+        $users = \json_decode($response, true);
+        if (!$users['ok']) {
+            throw new APIException($users['error']);
+        }
+        $return = [];
+        foreach ($users['members'] as $member) {
+            $return []= $member['name'];
+        }
+        return $return;
+    }
+
+    /**
      * Load the Slack API token from the hidden configuration file.
      *
      * @return string
@@ -213,6 +253,7 @@ class CommonAPI
     /**
      * @param string $recipient
      * @param string $plaxitude
+     * @return array
      */
     protected function sendPlaxitude($recipient = '', $plaxitude = '')
     {
@@ -223,9 +264,24 @@ class CommonAPI
         }
         if (!empty($user['phone'])) {
             $this->sendSMS($user['phone'], $plaxitude);
+            return [
+                'recipient' => $recipient,
+                'method' => 'sms',
+                'plaxitude' => $plaxitude
+            ];
         } elseif (!empty($user['email'])) {
             $this->sendEmail($user['email'], $plaxitude);
+            return [
+                'recipient' => $recipient,
+                'method' => 'email',
+                'plaxitude' => $plaxitude
+            ];
         }
+        return [
+            'recipient' => $recipient,
+            'method' => null,
+            'error' => 'No email address or phone number found'
+        ];
     }
 
     /**
@@ -234,6 +290,6 @@ class CommonAPI
      */
     protected function sendSMS($phoneNumber, $message)
     {
-
+        // TODO: Use the Twilio API to send a message
     }
 }

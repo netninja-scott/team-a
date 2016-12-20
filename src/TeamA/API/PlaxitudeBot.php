@@ -63,12 +63,70 @@ class PlaxitudeBot extends CommonAPI
     public function send()
     {
         try {
+            if (empty($_GET['name'])) {
+                $this->jsonResponse([
+                    'ok' => false,
+                    'error' => 'Parameter not passed: name'
+                ]);
+            }
+            if (empty($_GET['category'])) {
+                /*
+                $this->jsonResponse([
+                    'ok' => false,
+                    'error' => 'Parameter not passed: category'
+                ]);
+                */
+                $_GET['category'] = $this->getRandomPlaxitudeCategory();
+            }
+            if (\is_array($_GET['name'])) {
+                $this->jsonResponse([
+                    'ok' => false,
+                    'error' => 'Parameter "name" cannot be an array.'
+                ]);
+            }
+            if (\is_array($_GET['categoy'])) {
+                $this->jsonResponse([
+                    'ok' => false,
+                    'error' => 'Parameter "category" cannot be an array.'
+                ]);
+            }
 
+            $this->handleSend($_GET['name'], $_GET['category']);
         } catch (\Exception $ex) {
             $this->jsonResponse([
                 'ok' => false,
                 'error' => $ex->getMessage()
             ]);
         }
+    }
+
+    /**
+     * @param string $name
+     * @param string $category
+     */
+    protected function handleSend($name = '', $category = '')
+    {
+        // MAGIC VALUE: SEND EVERYONE SOMETHING
+        $results = [];
+        if (\strtolower($name) === 'everyone') {
+            foreach ($this->getAllUsers() as $user) {
+                $results []= $this->sendPlaxitude(
+                    $user,
+                    $this->getRandomPlaxitude($category)
+                );
+            }
+        } else {
+            $results []= $this->sendPlaxitude(
+                $name,
+                $this->getRandomPlaxitude($category)
+            );
+        }
+
+        $this->jsonResponse(
+            [
+                'ok' => true,
+                'results' => $results
+            ]
+        );
     }
 }
