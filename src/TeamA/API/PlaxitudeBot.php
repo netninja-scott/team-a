@@ -57,6 +57,11 @@ class PlaxitudeBot extends CommonAPI
         ]);
     }
 
+    /**
+     * This is just a dummy Twilio callback.
+     *
+     * @route /callback
+     */
     public function callback()
     {
         $this->jsonResponse([
