@@ -148,7 +148,8 @@ class CommonAPI
                 return $member['profile'];
             }
         }
-        foreach ($users['members'] as $member) {
+        foreach ($users['members'] as $_member) {
+            $member = $this->getMemberById($_member);
             if ($this->userMatch($name, $member, true)) {
                 return $member['profile'];
             }
