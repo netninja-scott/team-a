@@ -58,10 +58,11 @@ class CommonAPI
         if (!\is_string($name)) {
             throw new \InvalidArgumentException('Name must be a string');
         }
+        $channelId = $this->getChannelId($channel);
         $response = (string) $this->slackGetRequest(
             'channels.info',
             [
-                'channel' => $channel
+                'channel' => $channelId
             ]
         );
 
@@ -80,6 +81,25 @@ class CommonAPI
             }
         }
         throw new UserNotFound('User not found in remote API');
+    }
+
+    /**
+     * @param string $channelName
+     * @return string
+     */
+    protected function getChannelId($channelName)
+    {
+        $response = (string) $this->slackGetRequest('channels.list');
+        $channels = \json_decode($response, true);
+        if (!$channels['ok']) {
+            throw new APIException($channels['error']);
+        }
+        foreach ($channels['channels'] as $ch) {
+            if ($ch['name'] === $channelName) {
+                return $ch['id'];
+            }
+        }
+        throw new APIException('Channel not found');
     }
 
     /**
