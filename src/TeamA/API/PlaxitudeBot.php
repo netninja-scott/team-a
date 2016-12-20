@@ -26,7 +26,7 @@ class PlaxitudeBot extends CommonAPI
             ],
             [
                 'method' =>
-                    'POST',
+                    'GET',
                 'uri' =>
                     '/send',
                 'description' =>
@@ -62,6 +62,13 @@ class PlaxitudeBot extends CommonAPI
      */
     public function send()
     {
+        try {
 
+        } catch (\Exception $ex) {
+            $this->jsonResponse([
+                'ok' => false,
+                'error' => $ex->getMessage()
+            ]);
+        }
     }
 }
