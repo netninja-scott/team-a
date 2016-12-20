@@ -70,13 +70,14 @@ class CommonAPI
         if (!$channel['ok']) {
             throw new APIException($channel['error']);
         }
-        var_dump($channel['channel']['members']);
-        foreach ($channel['channel']['members'] as $member) {
+        foreach ($channel['channel']['members'] as $_member) {
+            $member = $this->getMemberById($_member);
             if ($this->userMatch($name, $member)) {
                 return $member['profile'];
             }
         }
-        foreach ($channel['members'] as $member) {
+        foreach ($channel['members'] as $_member) {
+            $member = $this->getMemberById($_member);
             if ($this->userMatch($name, $member, true)) {
                 return $member['profile'];
             }
@@ -104,6 +105,26 @@ class CommonAPI
     }
 
     /**
+     * @param string $memberId
+     * @return array
+     * @throws APIException
+     */
+    protected function getMemberById($memberId)
+    {
+        $response = (string) $this->slackGetRequest(
+            'users.info',
+            [
+                'user' => $memberId
+            ]
+        );
+        $user = \json_decode($response, true);
+        if (!$user['ok']) {
+            throw new APIException($user['error']);
+        }
+        return $user['user'];
+    }
+
+    /**
      * Search all users, by name.
      *
      * @param string $name
@@ -121,7 +142,8 @@ class CommonAPI
         if (!$users['ok']) {
             throw new APIException($users['error']);
         }
-        foreach ($users['members'] as $member) {
+        foreach ($users['members'] as $_member) {
+            $member = $this->getMemberById($_member);
             if ($this->userMatch($name, $member)) {
                 return $member['profile'];
             }
@@ -199,11 +221,15 @@ class CommonAPI
             $results = \pg_fetch_assoc(
                 \pg_query(
                     $this->conn,
-                    "SELECT category FROM quotes ORDER BY RANDOM()"
+                    "SELECT DISTINCT category FROM quotes ORDER BY category ASC"
                 )
             );
-            return ($results['category']);
+            foreach ($results as $res) {
+                $categories[] = $res['category'];
+            }
         }
+        $r = \random_int(0, \count($categories) - 1);
+        return $categories[$r];
     }
 
     /**
@@ -345,10 +371,10 @@ class CommonAPI
     protected function sendSMS($phoneNumber, $message)
     {
         $from = '13128001570';
-        $url = 'http://smsomatic.aws6.networkninja.com/sms.php';
+        // $url = 'http://smsomatic.aws6.networkninja.com/sms.php';
         $callback_url = 'http://smsomatic.aws6.networkninja.com/plax_callback.php';
 
-        $url =  $callback_url . '?' . \http_build_query([
+        $url = $callback_url . '?' . \http_build_query([
             'from' => $from ,
             'to' => $phoneNumber,
             'body' => $message,
