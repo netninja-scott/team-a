@@ -71,13 +71,13 @@ class CommonAPI
             throw new APIException($channel['error']);
         }
         foreach ($channel['channel']['members'] as $_member) {
-            $member = $this->getMemberById($_member);
+            $member = $this->getMemberById($_member['id']);
             if ($this->userMatch($name, $member)) {
                 return $member['profile'];
             }
         }
         foreach ($channel['members'] as $_member) {
-            $member = $this->getMemberById($_member);
+            $member = $this->getMemberById($_member['id']);
             if ($this->userMatch($name, $member, true)) {
                 return $member['profile'];
             }
@@ -143,13 +143,13 @@ class CommonAPI
             throw new APIException($users['error']);
         }
         foreach ($users['members'] as $_member) {
-            $member = $this->getMemberById($_member);
+            $member = $this->getMemberById($_member['id']);
             if ($this->userMatch($name, $member)) {
                 return $member['profile'];
             }
         }
         foreach ($users['members'] as $_member) {
-            $member = $this->getMemberById($_member);
+            $member = $this->getMemberById($_member['id']);
             if ($this->userMatch($name, $member, true)) {
                 return $member['profile'];
             }
