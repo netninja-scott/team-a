@@ -14,6 +14,11 @@ use Zend\Mail\Transport\Sendmail;
 class CommonAPI
 {
     /**
+     * @var resource (Pgsql connection)
+     */
+    protected $conn;
+
+    /**
      * @var HTTPClient
      */
     protected $guzzle;
@@ -28,8 +33,14 @@ class CommonAPI
      */
     public function __construct()
     {
+        $this->conn = \pg_connect('host=localhost port=5432 dbname=plaxitude user=img password=img1') or die('connection failed.');
         $this->guzzle = new HTTPClient();
         $this->mailTransport = new Sendmail();
+    }
+
+    public function __destruct()
+    {
+        \pg_close($this->conn);
     }
 
     /**
@@ -162,25 +173,43 @@ class CommonAPI
      */
     protected function getRandomPlaxitudeCategory()
     {
-        // TODO: Lookup, using random_int()
+        static $categories = null;
+        if (!$categories) {
+            $results = \pg_fetch_assoc(
+                \pg_query(
+                    $this->conn,
+                    "SELECT DISTINCT category FROM quotes ORDER BY category ASC"
+                )
+            );
+            foreach ($results as $res) {
+                $categories[] = $res['category'];
+            }
+        }
+        $r = \random_int(0, \count($categories) - 1);
+        return $categories[$r];
     }
 
     /**
      * @param string $category
      * @return string
      */
-    protected function getPlaxitude($category)
+    protected function getRandomPlaxitude($category)
     {
-        $conn = pg_connect('host=localhost port=5432 dbname=plaxitude user=img password=img1') or die('connection failed.');
-
-        $sql = "SELECT * FROM quotes WHERE TRUE ";
         if ($category) {
-            $sql .= " AND category = $1 ";
+            $result = \pg_fetch_assoc(
+                \pg_query_params(
+                    $this->conn,
+                    "SELECT * FROM quotes WHERE category = $1 ORDER BY RANDOM() ",
+                    [
+                        $category
+                    ]
+                )
+            );
+        } else {
+            $result = \pg_fetch_assoc(
+                \pg_query($this->conn, "SELECT * FROM quotes ORDER BY RANDOM() ")
+            );
         }
-        $sql .= " ORDER BY RANDOM() ";
-        $result = pg_fetch_assoc(pg_query_params($conn, $sql, [$category]));
-
-        pg_close($conn);
 
         return $result['text'];
     }
@@ -311,12 +340,13 @@ class CommonAPI
         $response = (string) $this->guzzle->request('GET', $url);
         $resp = json_decode($response);
 
-        $conn = pg_connect('host=localhost port=5432 dbname=plaxitude user=img password=img1') or die('connection failed.');
-        $sql = "INSERT INTO status (message_id, recipient_name) VALUES ($1, $2)";
-        pg_query_params($conn, $sql, [
-            $resp->sid,
-            $phoneNumber
-        ]);
-        pg_close($conn);
+        \pg_query_params(
+            $this->conn,
+            "INSERT INTO status (message_id, recipient_name) VALUES ($1, $2)",
+            [
+                $resp->sid,
+                $phoneNumber
+            ]
+        );
     }
 }
