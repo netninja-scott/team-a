@@ -17,7 +17,11 @@
 
 API Summary.
 
-### POST /send
+Response (JSON string):
+
+* The API methods.
+
+### GET /send
 
 Expected parameters:
 
@@ -28,3 +32,8 @@ Expected parameters:
   * `"EARLY YEARS"`
   * `"JOKES"`
   * `"KIDS"`
+
+Response (JSON string):
+
+* `ok` (boolean) - TRUE unless an error occurs
+* `error` (string) - Empty unless an error occurs

@@ -12,7 +12,7 @@ $dispatcher = FastRoute\simpleDispatcher(
             ['\\Netninja\\TeamA\\API\\PlaxitudeBot', 'index']
         );
         $r->addRoute(
-            'POST',
+            'GET',
             '/send',
             ['\\Netninja\\TeamA\\API\\PlaxitudeBot', 'send']
         );
