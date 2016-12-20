@@ -4,6 +4,8 @@ namespace Netninja\TeamA;
 use GuzzleHttp\Client as HTTPClient;
 use Netninja\TeamA\Exceptions\APIException;
 use Netninja\TeamA\Exceptions\UserNotFound;
+use ParagonIE\EasyDB\EasyDB;
+use ParagonIE\EasyDB\Factory;
 use Zend\Mail\Message;
 use Zend\Mail\Transport\Sendmail;
 
@@ -17,6 +19,11 @@ class CommonAPI
      * @var resource (Pgsql connection)
      */
     protected $conn;
+
+    /**
+     * @var EasyDB
+     */
+    protected $db;
 
     /**
      * @var HTTPClient
@@ -33,14 +40,16 @@ class CommonAPI
      */
     public function __construct()
     {
-        $this->conn = \pg_connect('host=localhost port=5432 dbname=plaxitude user=img password=img1') or die('connection failed.');
         $this->guzzle = new HTTPClient();
         $this->mailTransport = new Sendmail();
-    }
 
-    public function __destruct()
-    {
-        \pg_close($this->conn);
+        $conn = \json_decode(\file_get_contents(TEAMA_ROOT . '/database.json'), true);
+        $port = !empty($conn['port']) ? $conn['port'] : 5432;
+        $this->db = Factory::create(
+            'pgsql:host=' . $conn['host'] . ';dbname=' . $conn['database'] . ';port=' . $port,
+            $conn['username'],
+            $conn['password']
+        );
     }
 
     /**
@@ -218,12 +227,7 @@ class CommonAPI
     {
         static $categories = null;
         if (!$categories) {
-            $results = \pg_fetch_assoc(
-                \pg_query(
-                    $this->conn,
-                    "SELECT DISTINCT category FROM quotes ORDER BY category ASC"
-                )
-            );
+            $results = $this->db->run("SELECT DISTINCT category FROM quotes ORDER BY category ASC");
             foreach ($results as $res) {
                 $categories[] = $res['category'];
             }
@@ -239,19 +243,12 @@ class CommonAPI
     protected function getRandomPlaxitude($category)
     {
         if ($category) {
-            $result = \pg_fetch_assoc(
-                \pg_query_params(
-                    $this->conn,
-                    "SELECT * FROM quotes WHERE category = $1 ORDER BY RANDOM() ",
-                    [
-                        $category
-                    ]
-                )
+            $result = $this->db->run(
+                "SELECT * FROM quotes WHERE category = $1 ORDER BY RANDOM() ",
+                $category
             );
         } else {
-            $result = \pg_fetch_assoc(
-                \pg_query($this->conn, "SELECT * FROM quotes ORDER BY RANDOM() ")
-            );
+            $result = $this->db->run("SELECT * FROM quotes ORDER BY RANDOM() ");
         }
 
         return $result['text'];
@@ -385,12 +382,11 @@ class CommonAPI
         $response = (string) $this->guzzle->request('GET', $url);
         $resp = json_decode($response);
 
-        \pg_query_params(
-            $this->conn,
-            "INSERT INTO status (message_id, recipient_name) VALUES ($1, $2)",
+        $this->db->insert(
+            'status',
             [
-                $resp->sid,
-                $phoneNumber
+                'message_id' => $resp->sid,
+                'recipient' => $phoneNumber
             ]
         );
     }
