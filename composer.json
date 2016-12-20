@@ -13,6 +13,7 @@
     "nikic/fast-route": "^1",
     "paragonie/easydb": "^2",
     "paragonie/random_compat": "^2",
-    "twilio/sdk": "^5.4"
+    "twilio/sdk": "^5.4",
+    "zendframework/zend-mail": "^2"
   }
 }

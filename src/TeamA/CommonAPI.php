@@ -4,6 +4,7 @@ namespace Netninja\TeamA;
 use GuzzleHttp\Client as HTTPClient;
 use Netninja\TeamA\Exceptions\APIException;
 use Netninja\TeamA\Exceptions\UserNotFound;
+use Zend\Mail\Transport\Sendmail;
 
 /**
  * Class CommonAPI
@@ -17,11 +18,17 @@ class CommonAPI
     protected $guzzle;
 
     /**
+     * @var Sendmail
+     */
+    protected $mailTransport;
+
+    /**
      * CommonAPI constructor.
      */
     public function __construct()
     {
         $this->guzzle = new HTTPClient();
+        $this->mailTransport = new Sendmail();
     }
 
     /**
